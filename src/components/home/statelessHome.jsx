@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Home = () => {
+const StatelessHome = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
         const isAuthenticated = localStorage.getItem("isAuthenticated");
         if (!isAuthenticated) {
-            navigate("/login"); // Redirect unauthorized users
+            navigate("/statelessLogin"); // Redirect unauthorized users
         }
     }, [navigate]);
 
@@ -16,7 +16,7 @@ const Home = () => {
             <h2>Welcome to the Home Page</h2>
             <button onClick={() => {
                 localStorage.removeItem("isAuthenticated"); // Clear session on logout
-                navigate("/login");
+                navigate("/statelessLogin");
             }}>
                 Logout
             </button>
@@ -24,4 +24,4 @@ const Home = () => {
     );
 };
 
-export default Home;
+export default StatelessHome;

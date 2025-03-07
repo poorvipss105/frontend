@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const SignupForm = () => {
+const StatelessLoginForm = () => {
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
     password: "",
   });
-
+  const navigate = useNavigate();
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState(""); // To store backend errors
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,50 +16,49 @@ const SignupForm = () => {
 
   const validate = () => {
     let newErrors = {};
-    if (!formData.name) newErrors.name = "Name is required";
     if (!formData.email) newErrors.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
       newErrors.email = "Invalid email format";
     if (!formData.password) newErrors.password = "Password is required";
-    else if (formData.password.length < 6)
-      newErrors.password = "Password must be at least 6 characters long";
-
     return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError(""); // Reset errors
     const newErrors = validate();
+
     if (Object.keys(newErrors).length === 0) {
-      try {
-        const response = await axios.post("http://localhost:5000/authUser", formData);
-        console.log("frontend response==", response);
-        alert("Signup successful!");
-        setFormData({ name: "", email: "", password: "" }); // Clear form after success
-      } catch (error) {
-        console.error("Signup error:", error.response?.data || error.message);
-      }
+        try {
+            const response = await fetch("http://localhost:5000/stateless/authUser/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData),
+                credentials: "include", // Ensures cookies are sent
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem("isAuthenticated", "true"); // Save login status
+                navigate("/statelessHome"); // Redirect after login
+            } else {
+                setServerError(data.message || "Login failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            setServerError("Stateless loggin getting errors");
+        }
     } else {
-      setErrors(newErrors);
+        setErrors(newErrors);
     }
-  };
+};
+
 
   return (
     <div className="container mt-5">
-      <h2>Signup Form</h2>
+      <h2>Login</h2>
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label className="form-label">Name</label>
-          <input
-            type="text"
-            name="name"
-            className={`form-control ${errors.name ? "is-invalid" : ""}`}
-            value={formData.name}
-            onChange={handleChange}
-          />
-          {errors.name && <div className="invalid-feedback">{errors.name}</div>}
-        </div>
-
         <div className="mb-3">
           <label className="form-label">Email</label>
           <input
@@ -84,10 +83,12 @@ const SignupForm = () => {
           {errors.password && <div className="invalid-feedback">{errors.password}</div>}
         </div>
 
-        <button type="submit" className="btn btn-primary">Signup</button>
+        {serverError && <div className="alert alert-danger">{serverError}</div>}
+
+        <button type="submit" className="btn btn-primary">Login</button>
       </form>
     </div>
   );
 };
 
-export default SignupForm;
+export default StatelessLoginForm;

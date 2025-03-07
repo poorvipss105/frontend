@@ -1,12 +1,14 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
+  const navigate = useNavigate();
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState(""); // To store backend errors
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,16 +23,37 @@ const LoginForm = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setServerError(""); // Reset errors
     const newErrors = validate();
+
     if (Object.keys(newErrors).length === 0) {
-      console.log("Login successful", formData);
-      alert("Login successful!");
+        try {
+            const response = await fetch("http://localhost:5000/authUser/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData),
+                credentials: "include", // Ensures cookies are sent
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem("isAuthenticated", "true"); // Save login status
+                navigate("/home"); // Redirect after login
+            } else {
+                setServerError(data.message || "Login failed. Please try again.");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            setServerError("Something went wrong. Please try again later.");
+        }
     } else {
-      setErrors(newErrors);
+        setErrors(newErrors);
     }
-  };
+};
+
 
   return (
     <div className="container mt-5">
@@ -57,10 +80,10 @@ const LoginForm = () => {
             value={formData.password}
             onChange={handleChange}
           />
-          {errors.password && (
-            <div className="invalid-feedback">{errors.password}</div>
-          )}
+          {errors.password && <div className="invalid-feedback">{errors.password}</div>}
         </div>
+
+        {serverError && <div className="alert alert-danger">{serverError}</div>}
 
         <button type="submit" className="btn btn-primary">Login</button>
       </form>

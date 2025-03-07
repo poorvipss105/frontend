@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-const SignupForm = () => {
+const StatelessSignupForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -90,4 +90,4 @@ const SignupForm = () => {
   );
 };
 
-export default SignupForm;
+export default StatelessSignupForm;
