@@ -19,6 +19,7 @@ function App() {
         <Route path="/statelessSignup" element={<StatelessSignupForm/>} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/signin" element={<SignupForm/>} />
+        
         <Route element={<PrivateRoute/>}/>
         <Route path="/home" element={<Home/>} />
         <Route path="/statelessHome" element={<StatelessHome/>} />
